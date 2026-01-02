@@ -13,31 +13,48 @@
 11 Repeat pin toggle inside an infinite loop.
 ----------------------------------------------------------------------------------------
 */
-// Toggle LEd at PA 8
+
 #include <stdint.h>
 
-#define RCC_BASE 0x40023800UL
-#define AHB1ENTR (*(volatile uint32_t *)(RCC_BASE + 0x30))
-#define GPIOA_BASE 0x40020000UL
-#define GPIOA_MODER (*(volatile uint32_t *)(GPIOA_BASE + 0x00))
-#define GPIOA_ODR (*(volatile uint32_t *)(GPIOA_BASE + 0x14))
+/* ================= RCC ================= */
+#define RCC_BASE        0x40023800UL
+#define RCC_AHB1ENR     (*(volatile uint32_t*)(RCC_BASE + 0x30))
 
-void delay(uint32_t n)
+/* ================= GPIOB ================= */
+#define GPIOB_BASE      0x40020400UL
+#define GPIOB_MODER     (*(volatile uint32_t*)(GPIOB_BASE + 0x00))
+#define GPIOB_ODR       (*(volatile uint32_t*)(GPIOB_BASE + 0x14))
+
+/* ================= GPIOC ================= */
+#define GPIOC_BASE      0x40020800UL
+#define GPIOC_MODER     (*(volatile uint32_t*)(GPIOC_BASE + 0x00))
+#define GPIOC_ODR       (*(volatile uint32_t*)(GPIOC_BASE + 0x14))
+
+void Delay(uint32_t n)
 {
-    for (volatile uint32_t i = 0; i < n; i++)
-        ;
+    for (volatile uint32_t i = 0; i < n; i++);
 }
 
-int main()
+int main(void)
 {
-    AHB1ENTR |= (1 << 0);
+    /* Enable GPIOB and GPIOC clocks */
+    RCC_AHB1ENR |= (1 << 1);   // GPIOB
+    RCC_AHB1ENR |= (1 << 2);   // GPIOC
 
-    GPIOA_MODER &= ~(3 << (8 * 2));
-    GPIOA_MODER |= (1 << (8 * 2));
+    /* Configure PB2 as output */
+    GPIOB_MODER &= ~(3 << (2 * 2));
+    GPIOB_MODER |=  (1 << (2 * 2));
+
+    /* Configure PC14 as output */
+    GPIOC_MODER &= ~(3 << (13 * 2));
+    GPIOC_MODER |=  (1 << (13 * 2));
 
     while (1)
     {
-        GPIOA_ODR ^= (1 << 8);
-        delay(100000);
+        /* Toggle PB2 and PC14 */
+        GPIOB_ODR ^= (1 << 2);
+        GPIOC_ODR ^= (1 << 13);
+
+        Delay(500000);
     }
 }
