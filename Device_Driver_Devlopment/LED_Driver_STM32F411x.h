@@ -5,7 +5,7 @@
 
 /*-------------------------------RCC ENABLE & AHB1 ENABL------------------------------------------------*/
 #define RCC_BASE 0x40023800UL
-#define RCC_AHB1ENT (*(volatile uint32_t *)(RCC_BASE + 0x30))
+#define RCC_AHB1ENR (*(volatile uint32_t *)(RCC_BASE + 0x30))
 
 /*-------------------------------------------GPIOA--------------------------------------------------------*/
 
@@ -64,19 +64,19 @@ void GPIO_Init(GPIO_t GPIOx)
     switch (GPIOx.Port)
     {
     case GPIOA:
-        RCC_AHB1ENT |= (1 << GPIOx.Port);
+        RCC_AHB1ENR |= (1 << GPIOx.Port);
         GPIOA_MODER &= ~(3U << (2U * GPIOx.Pin));
         GPIOA_MODER |= (1U << (2U * GPIOx.Pin));
         break;
 
     case GPIOB:
-        RCC_AHB1ENT |= (1 << GPIOx.Port);
+        RCC_AHB1ENR |= (1 << GPIOx.Port);
         GPIOB_MODER &= ~(3U << (2U * GPIOx.Pin));
         GPIOB_MODER |= (1U << (2U * GPIOx.Pin));
         break;
 
     case GPIOC:
-        RCC_AHB1ENT |= (1 << GPIOx.Port);
+        RCC_AHB1ENR |= (1 << GPIOx.Port);
         GPIOC_MODER &= ~(3U << (2U * GPIOx.Pin));
         GPIOC_MODER |= (1U << (2U * GPIOx.Pin));
         break;
