@@ -1,232 +1,210 @@
-Bare-Metal STM32 LED Toggle (PA8)
-📌 Overview
+# STM32 LED Driver (Register-Level GPIO Control)
 
-This project demonstrates bare-metal programming on an STM32 microcontroller (no HAL, no CMSIS helpers) to toggle an LED connected to pin PA8 using direct register access.
+A minimal, educational STM32 GPIO LED driver implemented using direct register access (no HAL/LL/CMSIS helpers).  
+This project demonstrates how to enable GPIO clocks, configure a pin as a general-purpose output, and toggle an LED using atomic register operations (BSRR). The code targets STM32F4-series microcontrollers (e.g., STM32F401/F411/F446) and includes an example that toggles PA8.
 
-The goal is to understand how to:
+---
 
-Read the STM32 Reference Manual
+## Table of contents
 
-Use the memory map
+- [Overview](#overview)
+- [Target hardware](#target-hardware)
+- [Reference documents](#reference-documents)
+- [Files](#files)
+- [Design & API](#design--api)
+- [Usage example](#usage-example)
+- [Build & flash (general guidance)](#build--flash-general-guidance)
+- [Limitations & notes](#limitations--notes)
+- [Next improvements](#next-improvements)
+- [License](#license)
 
-Enable peripheral clocks
+---
 
-Configure GPIO registers manually
+## Overview
 
-Control a pin using ODR
+This driver is intentionally minimal and educational. It shows how to:
 
-This approach builds strong fundamentals required for driver development, RTOS work, and low-level embedded systems.
+- Read the STM32 reference manual and memory map
+- Enable the RCC clock for GPIO ports
+- Configure GPIO pin mode manually through MODER
+- Toggle a pin atomically using BSRR
+- Provide a small, reusable API: `GPIO_Init`, `GPIO_TogglePin`, and `LED_Toggle`
 
-🧠 Target Hardware
+No external libraries (HAL/LL) are required.
 
-MCU Family: STM32F4 series (e.g., STM32F401 / STM32F411 / STM32F446)
+---
 
-GPIO Port: GPIOA
+## Target hardware
 
-Pin Used: PA8
+- MCU family: STM32F4 series (e.g., STM32F401, STM32F411, STM32F446)
+- GPIO port: GPIOA (example uses PA8)
+- LED: external LED or board LED wired to PA8
 
-LED: External LED or onboard LED (if wired to PA8)
+Important: Verify exact device reference manual and board schematic before connecting hardware.
 
-⚠️ Always verify your exact MCU reference manual and board schematic to confirm pin connections.
+---
 
-📚 Reference Documents Used
+## Reference documents
 
-You must refer to the following STM32 documents:
+Consult your MCU's reference manual and datasheet for correct memory map and register/bit definitions:
 
-Reference Manual (RMxxxx)
+- STM32F4 Reference Manual (RM0008 or RM0368 depending on the specific family)
+- STM32F4 datasheet for pin multiplexing and electrical characteristics
 
-Memory Map
+---
 
-RCC registers
+## Files
 
-GPIO registers
+- `led_driver_stm32.h` — Register-level GPIO driver header (init + toggle)
+- `example_main.c` — Minimal example demonstrating toggling PA8
+- `README.md` — This file
 
-Datasheet
+---
 
-Pin multiplexing
+## Design & API
 
-Electrical characteristics
+The driver exposes a tiny API through `led_driver_stm32.h`.
 
-🔧 Step-by-Step Explanation (Mapped to Code)
-Step 1: Locate RCC Base Address
-
-From Reference Manual → Memory Map:
-
-RCC Base Address = 0x40023800
-
-#define RCC_BASE 0x40023800UL
-
-Step 2: Locate RCC_AHB1ENR Register
-
-From RCC Register Map:
-
-AHB1ENR Offset = 0x30
-
-#define RCC_AHB1ENR (*(volatile uint32_t *)(RCC_BASE + 0x30))
-
-
-This register controls clocks for:
-
-GPIOA
-
-GPIOB
-
-GPIOC
-
-etc.
-
-Step 3: Enable GPIOA Clock
-
-GPIOA is connected to the AHB1 bus.
-Bit 0 enables GPIOA.
-
-RCC_AHB1ENR |= (1 << 0);
-
-
-⚠️ Without enabling the clock, GPIO registers will not function.
-
-Step 4: Locate GPIOA Base Address
-
-From Memory Map:
-
-GPIOA Base Address = 0x40020000
-
-#define GPIOA_BASE 0x40020000UL
-
-Step 5: Locate GPIOA_MODER Register
-
-Offset: 0x00
-
-Each GPIO pin uses 2 bits
-
-MODER Bits	Mode
-00	Input
-01	Output
-10	Alternate Function
-11	Analog
-#define GPIOA_MODER (*(volatile uint32_t *)(GPIOA_BASE + 0x00))
-
-Step 6: Clear MODER Bits for PA8
-
-Each pin uses (pin × 2) bits.
-
-For PA8 → bits [17:16]
-
-GPIOA_MODER &= ~(3 << (8 * 2));
-
-
-This clears the existing mode configuration.
-
-Step 7: Set PA8 as Output Mode
-
-Set MODER bits to 01:
-
-GPIOA_MODER |= (1 << (8 * 2));
-
-
-PA8 is now configured as a general-purpose output pin.
-
-Step 8: Locate GPIOA_ODR Register
-
-Offset: 0x14
-
-Controls output state
-
-#define GPIOA_ODR (*(volatile uint32_t *)(GPIOA_BASE + 0x14))
-
-Step 9: Toggle PA8
-GPIOA_ODR ^= (1 << 8);
-
-
-1 → LED ON
-
-0 → LED OFF
-
-XOR toggles the pin state.
-
-Step 10: Software Delay
-
-Simple blocking delay using an empty loop:
-
-void delay(uint32_t n)
+Types:
+```c
+typedef enum
 {
-    for (volatile uint32_t i = 0; i < n; i++);
-}
+    GPIO_PORT_A = 0,
+    GPIO_PORT_B = 1,
+    GPIO_PORT_C = 2
+} GPIO_PORTS;
 
-
-⚠️ Delay depends on CPU clock frequency and is not precise.
-
-Step 11: Infinite Loop
-while (1)
+typedef struct
 {
-    GPIOA_ODR ^= (1 << 8);
-    delay(100000);
-}
+    GPIO_PORTS Port;
+    uint8_t Pin;   // 0..15
+} GPIO_t;
+```
 
+Predefined pins in the header (examples):
+```c
+#define GPIOA_PA5   ((GPIO_t){GPIO_PORT_A, 5})
+#define GPIOA_PA8   ((GPIO_t){GPIO_PORT_A, 8})
+#define GPIOB_PB0   ((GPIO_t){GPIO_PORT_B, 0})
+#define GPIOC_PC13  ((GPIO_t){GPIO_PORT_C, 13})
+```
 
-This continuously toggles the LED.
+API functions (all are `static inline` in the header for simplicity):
 
-🧩 Complete Source Code
+- `void GPIO_Init(GPIO_t gpio);`
+  - Enables the GPIO port clock (RCC_AHB1ENR) and sets the pin MODER bits to output (`01`).
+
+- `void GPIO_TogglePin(GPIO_t gpio);`
+  - Reads the pin state from ODR and uses BSRR to atomically set or reset the pin.
+
+- `void LED_Toggle(GPIO_t gpio);`
+  - High-level convenience: calls `GPIO_Init()` then `GPIO_TogglePin()`.
+
+Implementation notes:
+- Uses hard-coded base addresses for STM32F4-family (RCC and GPIOA/B/C).
+- Uses `RCC_AHB1ENR` to enable clocks and performs a readback to ensure synchronization.
+- Uses `GPIOx_BSRR` to set/reset pins atomically — preferred over direct ODR writes for concurrency safety.
+
+---
+
+## Usage example
+
+Minimal example that toggles PA8 (from `example_main.c`):
+
+```c
 #include <stdint.h>
+#include "led_driver_stm32.h"
 
-#define RCC_BASE        0x40023800UL
-#define RCC_AHB1ENR     (*(volatile uint32_t *)(RCC_BASE + 0x30))
-
-#define GPIOA_BASE      0x40020000UL
-#define GPIOA_MODER     (*(volatile uint32_t *)(GPIOA_BASE + 0x00))
-#define GPIOA_ODR       (*(volatile uint32_t *)(GPIOA_BASE + 0x14))
-
-void delay(uint32_t n)
+/* crude busy-wait delay */
+static void delay(volatile uint32_t n)
 {
-    for (volatile uint32_t i = 0; i < n; i++);
+    while (n--)
+    {
+        __asm__("nop");
+    }
 }
 
 int main(void)
 {
-    /* Enable GPIOA clock */
-    RCC_AHB1ENR |= (1 << 0);
-
-    /* Configure PA8 as output */
-    GPIOA_MODER &= ~(3 << (8 * 2));
-    GPIOA_MODER |=  (1 << (8 * 2));
-
     while (1)
     {
-        GPIOA_ODR ^= (1 << 8);
-        delay(100000);
+        LED_Toggle(GPIOA_PA8);     // initialize (idempotent) and toggle PA8
+        delay(1000000U);          // crude software delay
     }
+
+    return 0;
 }
+```
 
-⚠️ Important Notes
+If you prefer toggling a different pin, use the predefined macro or construct a `GPIO_t`:
 
-Bare-metal example (startup code not shown)
+```c
+LED_Toggle(GPIOC_PC13); // toggle PC13
+```
 
-Default system clock assumed (HSI)
+---
 
-Blocking delay is not accurate
+## Build & flash (general guidance)
 
-ODR is not atomic — BSRR is preferred in production
+This repository contains only source/header files. Integrate into your preferred toolchain/project:
 
-🚀 Next Improvements
+- Create a project for your STM32F4 MCU (toolchains: GNU Arm Embedded toolchain, Keil, IAR, etc.)
+- Add a minimal startup (vector table) and linker script suitable for your target device
+- Include `led_driver_stm32.h` and a `main.c` (or `example_main.c`) in the project
+- Build and flash via your chosen programmer (ST-Link, J-Link, etc.)
 
-Use GPIOx_BSRR for atomic pin control
+Example compile command (GCC, simplified — assumes startup and system files are present):
+```sh
+arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb -O2 -ffreestanding -nostdlib \
+  -T path/to/your.ld startup_stm32.s example_main.c -o firmware.elf
+arm-none-eabi-objcopy -O binary firmware.elf firmware.bin
+# then flash firmware.bin with st-flash or openocd depending on your setup
+```
 
-Implement timer-based delay (SysTick)
+Always follow recommended board/device setup and reset/power sequencing when flashing.
 
-Create a reusable GPIO driver
+---
 
-Support multiple pins and ports
+## Limitations & notes
 
-Add CMSIS-only startup code
+This driver is intentionally minimal for learning purposes:
 
-🎯 Learning Outcome
+- No configuration for pull-up / pull-down resistors (PUPDR)
+- No output type (push-pull/open-drain) or speed configuration (OTYPER, OSPEEDR)
+- No input mode support or interrupt/event handling
+- No SysTick or timer-based delays — only crude busy-wait loops
+- Base addresses are hard coded for the STM32F4 family — porting to another family (e.g., F1, F7, G0) requires address and register offset adjustments
+- The header performs `GPIO_Init()` on each `LED_Toggle()` call for simplicity. In production, track initialization state to avoid repeated configuration.
 
-After completing this project, you should be able to:
+Recommended production improvements:
+- Use `GPIOx_BSRR` for atomic operations (already used here)
+- Implement init-once semantics or an explicit `GPIO_Config()` separate from `Toggle`
+- Add configuration API to set pull-up/pull-down, speed, type
+- Replace busy-wait delays with timer or SysTick-based timing
+- Add unit tests and integrate with a build system
 
-Read STM32 reference manuals
+---
 
-Write register-level GPIO code
+## Next improvements (suggested)
 
-Understand clock gating
+- Add `GPIO_WritePin()` / `GPIO_SetPin()` / `GPIO_ResetPin()` convenience functions
+- Add `GPIO_Config()` that accepts mode/pull/type/speed flags
+- Track per-pin initialization status to avoid re-configuring in `LED_Toggle`
+- Provide a small Makefile or CMake configuration and CI for build checks
+- Add a minimal HAL-like adapter layer for easier transition to production projects
 
-Build a foundation for driver and RTOS development
+---
+
+## License
+
+This code is provided for educational purposes. You may reuse or adapt the code in accordance with your project's licensing policy. No warranty is provided.
+
+---
+
+If you'd like, I can:
+- Add a Makefile/CMake for building the example,
+- Implement an init-once optimization (per-pin init tracking),
+- Extend the driver with pull-up/pull-down and speed configuration,
+- Or adapt the driver to a specific STM32F4 device and provide a preconfigured startup + linker script.
+
+Which improvement would you like next?
