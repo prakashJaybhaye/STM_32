@@ -1,140 +1,232 @@
-STM32 LED Driver (Register-Level GPIO Control)
-Overview
+Bare-Metal STM32 LED Toggle (PA8)
+📌 Overview
 
-This repository contains a lightweight STM32 GPIO LED driver implemented using direct register access (no HAL/LL libraries).
-It provides a simple abstraction to initialize GPIO pins and toggle LEDs on GPIOA, GPIOB, and GPIOC.
+This project demonstrates bare-metal programming on an STM32 microcontroller (no HAL, no CMSIS helpers) to toggle an LED connected to pin PA8 using direct register access.
 
-The driver is designed for STM32F4-series microcontrollers (RCC and GPIO base addresses follow STM32F4 memory mapping).
+The goal is to understand how to:
 
-Features
+Read the STM32 Reference Manual
 
-🚀 Direct register-level programming (bare-metal)
+Use the memory map
 
-🔌 Supports GPIO ports A, B, and C
+Enable peripheral clocks
 
-💡 Easy LED toggling using a single API
+Configure GPIO registers manually
 
-🧩 Lightweight and dependency-free
+Control a pin using ODR
 
-🛠️ Suitable for learning, low-level drivers, and embedded fundamentals
+This approach builds strong fundamentals required for driver development, RTOS work, and low-level embedded systems.
 
-File Structure
-.
-├── led_driver_stm32.h   # GPIO & LED driver implementation
-└── README.md
+🧠 Target Hardware
 
-Supported Microcontrollers
+MCU Family: STM32F4 series (e.g., STM32F401 / STM32F411 / STM32F446)
 
-STM32F4 series (e.g., STM32F401, STM32F411, STM32F446)
+GPIO Port: GPIOA
 
-⚠️ Base addresses are hardcoded. Using a different STM32 family may require changes.
+Pin Used: PA8
 
-GPIO Abstraction
+LED: External LED or onboard LED (if wired to PA8)
 
-Each GPIO pin is represented using the GPIO_t structure:
+⚠️ Always verify your exact MCU reference manual and board schematic to confirm pin connections.
 
-typedef struct GPIO_t
+📚 Reference Documents Used
+
+You must refer to the following STM32 documents:
+
+Reference Manual (RMxxxx)
+
+Memory Map
+
+RCC registers
+
+GPIO registers
+
+Datasheet
+
+Pin multiplexing
+
+Electrical characteristics
+
+🔧 Step-by-Step Explanation (Mapped to Code)
+Step 1: Locate RCC Base Address
+
+From Reference Manual → Memory Map:
+
+RCC Base Address = 0x40023800
+
+#define RCC_BASE 0x40023800UL
+
+Step 2: Locate RCC_AHB1ENR Register
+
+From RCC Register Map:
+
+AHB1ENR Offset = 0x30
+
+#define RCC_AHB1ENR (*(volatile uint32_t *)(RCC_BASE + 0x30))
+
+
+This register controls clocks for:
+
+GPIOA
+
+GPIOB
+
+GPIOC
+
+etc.
+
+Step 3: Enable GPIOA Clock
+
+GPIOA is connected to the AHB1 bus.
+Bit 0 enables GPIOA.
+
+RCC_AHB1ENR |= (1 << 0);
+
+
+⚠️ Without enabling the clock, GPIO registers will not function.
+
+Step 4: Locate GPIOA Base Address
+
+From Memory Map:
+
+GPIOA Base Address = 0x40020000
+
+#define GPIOA_BASE 0x40020000UL
+
+Step 5: Locate GPIOA_MODER Register
+
+Offset: 0x00
+
+Each GPIO pin uses 2 bits
+
+MODER Bits	Mode
+00	Input
+01	Output
+10	Alternate Function
+11	Analog
+#define GPIOA_MODER (*(volatile uint32_t *)(GPIOA_BASE + 0x00))
+
+Step 6: Clear MODER Bits for PA8
+
+Each pin uses (pin × 2) bits.
+
+For PA8 → bits [17:16]
+
+GPIOA_MODER &= ~(3 << (8 * 2));
+
+
+This clears the existing mode configuration.
+
+Step 7: Set PA8 as Output Mode
+
+Set MODER bits to 01:
+
+GPIOA_MODER |= (1 << (8 * 2));
+
+
+PA8 is now configured as a general-purpose output pin.
+
+Step 8: Locate GPIOA_ODR Register
+
+Offset: 0x14
+
+Controls output state
+
+#define GPIOA_ODR (*(volatile uint32_t *)(GPIOA_BASE + 0x14))
+
+Step 9: Toggle PA8
+GPIOA_ODR ^= (1 << 8);
+
+
+1 → LED ON
+
+0 → LED OFF
+
+XOR toggles the pin state.
+
+Step 10: Software Delay
+
+Simple blocking delay using an empty loop:
+
+void delay(uint32_t n)
 {
-    GPIO_PORTS Port;
-    uint8_t Pin;
-} GPIO_t;
-
-Predefined GPIO Pins
-
-Examples:
-
-GPIOA_PA5   // Port A, Pin 5
-GPIOB_PB0   // Port B, Pin 0
-GPIOC_PC13  // Port C, Pin 13
-
-API Reference
-1. GPIO Initialization
-void GPIO_Init(GPIO_t GPIO_Port_Pin);
+    for (volatile uint32_t i = 0; i < n; i++);
+}
 
 
-Enables the GPIO clock
+⚠️ Delay depends on CPU clock frequency and is not precise.
 
-Configures the pin as output mode
-
-2. Toggle GPIO Pin (Low-level)
-void GPIO_TogglePin(
-    volatile uint32_t *GPIOx_ODR,
-    volatile uint32_t *GPIOx_BSRR,
-    GPIO_t GPIO_Port_Pin
-);
+Step 11: Infinite Loop
+while (1)
+{
+    GPIOA_ODR ^= (1 << 8);
+    delay(100000);
+}
 
 
-Uses ODR and BSRR registers
+This continuously toggles the LED.
 
-Atomic pin set/reset
+🧩 Complete Source Code
+#include <stdint.h>
 
-3. LED Toggle (High-level API)
-void LED_Toggle(GPIO_t GPIO_Port_Pin);
+#define RCC_BASE        0x40023800UL
+#define RCC_AHB1ENR     (*(volatile uint32_t *)(RCC_BASE + 0x30))
 
+#define GPIOA_BASE      0x40020000UL
+#define GPIOA_MODER     (*(volatile uint32_t *)(GPIOA_BASE + 0x00))
+#define GPIOA_ODR       (*(volatile uint32_t *)(GPIOA_BASE + 0x14))
 
-Initializes the GPIO pin
-
-Toggles the LED state
-
-✅ Recommended function for application use.
-
-Example Usage
-#include "led_driver_stm32.h"
+void delay(uint32_t n)
+{
+    for (volatile uint32_t i = 0; i < n; i++);
+}
 
 int main(void)
 {
+    /* Enable GPIOA clock */
+    RCC_AHB1ENR |= (1 << 0);
+
+    /* Configure PA8 as output */
+    GPIOA_MODER &= ~(3 << (8 * 2));
+    GPIOA_MODER |=  (1 << (8 * 2));
+
     while (1)
     {
-        LED_Toggle(GPIOA_PA5);  // Toggle LED on PA5
-        for (volatile int i = 0; i < 100000; i++); // Delay
+        GPIOA_ODR ^= (1 << 8);
+        delay(100000);
     }
 }
 
-How It Works
+⚠️ Important Notes
 
-Clock Enable
-Enables AHB1 clock for the selected GPIO port.
+Bare-metal example (startup code not shown)
 
-Pin Configuration
-Sets GPIO pin mode to output.
+Default system clock assumed (HSI)
 
-Toggle Logic
+Blocking delay is not accurate
 
-Reads current pin state from ODR
+ODR is not atomic — BSRR is preferred in production
 
-Uses BSRR to atomically set or reset the pin
+🚀 Next Improvements
 
-Limitations
+Use GPIOx_BSRR for atomic pin control
 
-❌ No input mode support
+Implement timer-based delay (SysTick)
 
-❌ No pull-up/pull-down configuration
+Create a reusable GPIO driver
 
-❌ No speed or output type configuration
+Support multiple pins and ports
 
-❌ No interrupt support
+Add CMSIS-only startup code
 
-This driver is intentionally minimal and educational.
+🎯 Learning Outcome
 
-Future Improvements
+After completing this project, you should be able to:
 
-Add GPIO input support
+Read STM32 reference manuals
 
-Add configurable pin modes
+Write register-level GPIO code
 
-Add delay utility
+Understand clock gating
 
-Add multi-LED support
-
-Port to other STM32 families
-
-License
-
-This project is open-source and free to use for learning and personal projects.
-You may add a license (MIT / Apache 2.0) as needed.
-
-Author
-
-Developed for bare-metal STM32 learning and experimentation.
-
-Happy hacking! 🔧💡
+Build a foundation for driver and RTOS development
