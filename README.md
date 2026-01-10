@@ -9,6 +9,7 @@ Made own LEd Toggle API to Toggle LED form Sratch without ussing extra library o
 Learn about How GPIO IDR work and made code to Toogle led on button press and on led contunue while button is pressed
 Lerned about Cortex M4 SysTimer register and designed delay function Bare metal
 Implemnted code for Led Blinking using accurate Delay 
+Learnig of External interrupts and Implementation of led Toggling Bare metal code on external interrupt occurs
 
 Goal 
 1. Learn to write True Baremetal Code for STM32uC
