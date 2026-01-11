@@ -39,7 +39,6 @@ Repeat the loop indefinitely → LED toggles every 1 second
 #define CLK_FRQ 16000000UL // Using STM32F411 CPU Clock
 #define LOAD_VAL (CLK_FRQ / 1000) - 1
 
-#define SYST_CSR_ENABLE_CLKSOURCE 5
 
 // RCC & AHB1 Enable------------------------------------------------------------------
 
@@ -64,8 +63,8 @@ void Systimer_Init(void)
     SYST_RVR = LOAD_VAL;
     SYST_CVR = 0;
 
-    SYST_CSR &= ~SYST_CSR_ENABLE_CLKSOURCE;
-    SYST_CSR |= SYST_CSR_ENABLE_CLKSOURCE;
+    SYST_CSR  = 0;
+    SYST_CSR |= (1<<0) | (1<<2);
 }
 
 // Delay------------------------------------------------------------------------------
@@ -74,8 +73,7 @@ void delay_ms(uint32_t ms)
 {
     for (uint32_t i = 0; i < ms; i++)
     {
-        while (((SYST_CSR >> 16) & 1) == 0)
-            ;
+        while (((SYST_CSR >> 16) & 1) == 0);
     }
 }
 
