@@ -1,22 +1,62 @@
-Done
+✅ Completed Learning & Implementation
+1. STM32 Documentation & Architecture
+Learned how to read and understand STM32 datasheets and reference manuals
+Understood memory mapping, peripheral base addresses, and offset addressing
+Learned how to access peripheral registers using base address + offset
 
-Learn How to Read Data Sheet & Refrance manual of STM32 uC
-Learn about Registers used to set GPIOs
-Learn about AHB1,RCC,GPIOxODR,GPIOxIDR,GPIOxBSRR
-How to access base address and how to jump to perfiferal address by offset value 
-Learn How to right register level code for STM32 and made Led Blinking Code for STM 32 without ussing extra library or HAL 
-Made own LEd Toggle API to Toggle LED form Sratch without ussing extra library or HAL by just by this api LED_ToGGle(PIN_Number) able to Toogle any GPIo pin 
-Learn about How GPIO IDR work and made code to Toogle led on button press and on led contunue while button is pressed
-Lerned about Cortex M4 SysTimer register and designed delay function Bare metal
-Implemnted code for Led Blinking using accurate Delay 
-Learnig of External interrupts and Implementation of led Toggling Bare metal code on external interrupt occurs
+3. GPIO & RCC Register-Level Programming
+Studied and implemented GPIO configuration using register-level programming
+Learned usage and purpose of the following registers:
+RCC (AHB1ENR) – Peripheral clock enabling
+GPIOxMODER – GPIO mode configuration
+GPIOxODR – Output Data Register
+GPIOxIDR – Input Data Register
+GPIOxBSRR – Atomic set/reset operations
+Implemented GPIO input/output configuration without HAL or external libraries
 
-Goal 
-1. Learn to write True Baremetal Code for STM32uC
-2. ADCs DACs Timer all perfiferals of uC
-3. Learn form Led Blinking to all Important Communication protocols
-4. Learn RTOS
+3. Bare-Metal LED Control
+Wrote LED blinking code entirely in bare-metal C
+Created a custom LED Toggle API:
+LED_Toggle(PIN_Number);
+Can toggle any GPIO pin
+No HAL, CMSIS abstraction, or external libraries used
 
+4. Button Input & GPIO IDR Usage
+Learned how GPIO IDR (Input Data Register) works
+Implemented:
+LED toggling on button press
+LED remains ON while the button is continuously pressed
+Pure register-level implementation
 
-Challenge taken 
-Not Use of Any external prewritten or HAL library. learn Basic -> write own library -> use in projects
+6. SysTick Timer & Delay Implementation
+Learned Cortex-M4 SysTick timer registers
+Designed and implemented an accurate delay function
+Used SysTick for precise LED blinking timing
+Bare-metal implementation without HAL
+
+6. External Interrupts (EXTI)
+Learned external interrupt architecture
+Configured EXTI at register level
+Implemented LED toggling on external interrupt
+Fully bare-metal interrupt handling
+
+🎯 Goal & Roadmap
+Short-Term Goals
+Master true bare-metal programming on STM32 microcontrollers
+Avoid usage of:
+HAL libraries
+Pre-written driver libraries
+Build custom low-level drivers from scratch
+Long-Term Goals
+Learn and implement all major STM32 peripherals, including:
+GPIO
+Timers
+ADC
+DAC
+UART, SPI, I²C, CAN
+Understand communication protocols from low-level signaling to full driver design
+Learn and implement RTOS concepts:
+Task scheduling
+Context switching
+Interrupt management
+
