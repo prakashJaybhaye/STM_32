@@ -40,6 +40,12 @@ Configured EXTI at register level
 Implemented LED toggling on external interrupt
 Fully bare-metal interrupt handling
 
+*Project Implementation 
+1. 4 Bit Counter Design in 3 different manner
+   a) For Loop and Delay base for evert 2-3 second counter will increase form 0-15(SysTimer is Useed for own Delay Function)
+   b) Push Button base on every button press counter will increase form 0-15.
+   c) EXTI and NVIC base on every button press interrupt will fire and counter will increase form 0-15
+
 🎯 Goal & Roadmap
 Short-Term Goals
 Master true bare-metal programming on STM32 microcontrollers
