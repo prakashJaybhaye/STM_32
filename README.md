@@ -40,6 +40,12 @@ Configured EXTI at register level
 Implemented LED toggling on external interrupt
 Fully bare-metal interrupt handling
 
+6. Genral perpose timmer
+Lerned about how timmer works
+How many register are involved in TM2
+work flow of TM2
+Implementation of basic delay function using HSI and TM2
+
 *Project Implementation 
 1. 4 Bit Counter Design in 3 different manner
    a) For Loop and Delay base for evert 2-3 second counter will increase form 0-15(SysTimer is Useed for own Delay Function)
