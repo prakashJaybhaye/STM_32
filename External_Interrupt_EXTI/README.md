@@ -1,127 +1,140 @@
-# External Interrupt (EXTI) — LED Toggle Example
+# STM32F411 – GPIO, EXTI Interrupt & SysTick Delay (Bare Metal)
 
-This repository contains a minimal bare-metal example for the STM32 family that demonstrates toggling LEDs in two ways:
-- A main loop toggles one LED using the SysTick-based delay.
-- An external interrupt (EXTI) triggered by a button toggles a second LED from the IRQ handler.
+## Overview
+This project demonstrates **bare-metal programming** on STM32F411 using:
+- GPIO for LED control
+- EXTI (External Interrupt) for button input
+- SysTick timer for millisecond delay
+- Direct register-level access (no HAL, no CMSIS)
 
-This example is implemented in plain C using direct peripheral register access (no HAL/LL libraries) and is intended for learning and experimentation.
+The application:
+- Toggles **LED on PA3** every 1 second using SysTick delay.
+- Toggles **LED on PA1** when **Button on PA2** is pressed using EXTI interrupt.
 
-## Files
-- External_Interrupt_EXTI/LED_Toggle_Interrupt_Base.c — Main source file implementing GPIO, EXTI and SysTick usage.
+---
 
-(Referenced source: [LED_Toggle_Interrupt_Base.c](https://github.com/prakashJaybhaye/STM_32/blob/063ed98962a5f401450d0e37768f0785667d3cee/External_Interrupt_EXTI/LED_Toggle_Interrupt_Base.c))
+## Hardware Connections
 
-## Target MCU / Board
-- STM32 (example uses STM32F4 family register addresses and assumptions — the code comments mention STM32F411).
-- Example assumes GPIOA pins are available (PA1, PA2, PA3). Adjust pin definitions for your board.
+| Signal | STM32 Pin | Description |
+|--------|-----------|-------------|
+| LED1   | PA1       | Toggled by EXTI interrupt |
+| LED2   | PA3       | Toggled using SysTick delay |
+| Button | PA2       | External interrupt input |
 
-## Pinout (as used in the code)
-- PA1  — LED_PIN      (toggled from EXTI2 IRQ handler)
-- PA2  — BUTTON        (external interrupt source)
-- PA3  — LED_PIN_1    (toggled in main loop every 1 second)
+---
 
-Modify these macros in the source if your board uses different pins:
-- LED_PIN (default 1)
-- LED_PIN_1 (default 3)
-- BUTTON (default 2)
+## Clock Configuration
 
-## How it works (summary)
-- RCC registers are used to enable GPIOA and SYSCFG clocks.
-- GPIOA pins PA1 and PA3 are configured as outputs. PA2 is configured as input (button).
-- SYSCFG external interrupt configuration register (EXTICR1) is cleared for EXTI2 mapping to PA2.
-- EXTI2 is unmasked (IMR) and rising trigger is enabled (RTSR) so a rising edge on PA2 will generate EXTI2 interrupt.
-- NVIC ISER0 bit is set to enable the EXTI2 IRQ in the NVIC.
-- SysTick is configured to create a millisecond tick (polled via the COUNTFLAG in the SysTick CSR).
-- The main loop toggles LED_PIN_1 every 1000 ms using delay_ms.
-- EXTI2_IRQHandler toggles LED_PIN when a button press occurs and clears EXTI_PR pending bit.
+- **HSI (Internal High-Speed Oscillator)** = 16 MHz
+- SysTick configured to generate **1ms tick**
 
-## Important code notes
-- The delay implementation polls SysTick COUNTFLAG (bit 16 of SYST_CSR). SysTick is set up with a 1 kHz reload to create millisecond ticks.
-- The code uses direct register access (volatile pointers and #define address macros), so it is not portable between different STM32 families without verifying register addresses.
-- The code enables the SYSCFG APB2 clock (RCC_APB2ENR bit 14) before configuring SYSCFG_EXTICR1.
-- NVIC enable is performed by writing to NVIC_ISER0. Ensure the correct IRQ number is used for your device; this example enables bit 8 which corresponds to the EXTI2 IRQ on the target used by the author. Confirm with your MCU's reference manual.
-
-## Build (example)
-This project does not include a full build system. Below are minimal commands to compile with the GNU ARM toolchain. Adjust include paths, startup files and linker script as required for your board.
-
-Prerequisites:
-- arm-none-eabi-gcc toolchain
-- A startup file and linker script for your MCU
-- Alternatively, use an IDE like STM32CubeIDE or Keil
-
-Example compile command (replace `startup.s` and `stm32_flash.ld` with appropriate files for your MCU):
-
-```bash
-arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb -O2 -g \
-  -T stm32_flash.ld \
-  -nostdlib \
-  -Wl,--gc-sections \
-  startup.s External_Interrupt_EXTI/LED_Toggle_Interrupt_Base.c -o led_exti.elf
-
-arm-none-eabi-objcopy -O binary led_exti.elf led_exti.bin
+```
+LOAD_VAL = (16000000 / 1000) - 1 = 15999
 ```
 
-A minimal Makefile snippet:
+---
 
-```make
-CC = arm-none-eabi-gcc
-OBJCOPY = arm-none-eabi-objcopy
-CFLAGS = -mcpu=cortex-m4 -mthumb -O2 -g -Wall
-LD_SCRIPT = stm32_flash.ld
-SRC = External_Interrupt_EXTI/LED_Toggle_Interrupt_Base.c
-STARTUP = startup.s
+## Register Blocks Used
 
-all: led_exti.bin
+### RCC (Clock Control)
+- `RCC_AHB1ENR` → Enable GPIOA clock
+- `RCC_APB2ENR` → Enable SYSCFG clock
 
-led_exti.elf: $(SRC) $(STARTUP) $(LD_SCRIPT)
-	$(CC) $(CFLAGS) -T $(LD_SCRIPT) -nostdlib -Wl,--gc-sections $(STARTUP) $(SRC) -o $@
+### GPIOA
+- `GPIOA_MODER` → Configure PA1, PA3 as output, PA2 as input
+- `GPIOA_ODR` → Read LED state
+- `GPIOA_BSRR` → Atomic set/reset LED pins
 
-led_exti.bin: led_exti.elf
-	$(OBJCOPY) -O binary $< $@
+### SYSCFG
+- `SYSCFG_EXTICR1` → Map PA2 to EXTI line 2
 
-clean:
-	rm -f led_exti.elf led_exti.bin
-```
+### EXTI
+- `EXTI_IMR` → Unmask interrupt line 2
+- `EXTI_RTSR` → Enable rising edge trigger
+- `EXTI_PR` → Clear pending interrupt
 
-## Flashing
-Use your preferred programmer (ST-Link, OpenOCD, J-Link, etc.). Example with OpenOCD + st-flash or using `st-link`:
+### NVIC
+- `NVIC_ISER0` → Enable EXTI2 interrupt in NVIC
 
-OpenOCD:
-```bash
-openocd -f interface/stlink.cfg -f target/stm32f4x.cfg \
-  -c "program led_exti.bin 0x08000000 verify reset exit"
-```
+### SysTick
+- `SYST_CSR` → Control and status register
+- `SYST_RVR` → Reload value register
+- `SYST_CVR` → Current value register
 
-st-flash:
-```bash
-st-flash write led_exti.bin 0x8000000
-```
+---
 
-Adjust flash address to match your MCU boot memory map.
+## Execution Flow (Step-by-Step)
 
-## Running and Testing
-1. Flash the binary to your board.
-2. Power/reset the board.
-3. The LED connected to PA3 (LED_PIN_1) should toggle every 1 second.
-4. Press the push-button connected to PA2; on a rising edge the EXTI2 IRQ handler toggles the LED on PA1 (LED_PIN).
+### 1. Enable Clocks
+- Enable GPIOA via `RCC_AHB1ENR`
+- Enable SYSCFG via `RCC_APB2ENR`
 
-## Limitations & Notes
-- Debouncing: The example does not debounce the button. Mechanical switches may generate bounces and multiple interrupts on a single press.
-- Safety: Code runs with interrupts enabled in NVIC for EXTI2. Ensure interrupt priorities and other system settings are configured correctly for your application.
-- SysTick usage: SysTick is polled for delay; this avoids using the SysTick interrupt but prevents low-power usage during delay loops.
-- Registers and IRQ numbers: The bit used when setting NVIC_ISER0 (1 << 8) maps to an IRQn number; verify with the device-specific vector table in your reference manual. Different devices or families may have different IRQ numbers for EXTI lines.
-- No startup or vector table is included in this example. You must provide proper startup code (vectors) in your build so that the EXTI2_IRQHandler symbol is used in the vector table.
+### 2. Configure GPIO
+- PA1 → Output (LED – interrupt controlled)
+- PA3 → Output (LED – delay controlled)
+- PA2 → Input (Button)
 
-## Suggested improvements
-- Add button debouncing (software or hardware).
-- Use HAL/LL for portability across STM32 families (or provide separate versions).
-- Add vector table and a sample linker script/startup for the specific MCU to make the project directly buildable.
-- Implement EXTI falling-edge support or bi-directional control.
-- Use a proper SysTick driver that supports delay and elapsed time without busy polling (or use an interrupt-driven SysTick).
+### 3. Configure EXTI for Button (PA2)
+- Map PA2 to EXTI2 using `SYSCFG_EXTICR1`
+- Unmask EXTI2 line using `EXTI_IMR`
+- Enable rising edge trigger using `EXTI_RTSR`
+- Enable EXTI2 in NVIC
 
-## License
-This example is provided as-is for educational purposes. You may reuse and modify it. Consider adding a specific license for your repository (e.g., MIT).
+### 4. Configure SysTick Timer
+- Set reload value for 1ms
+- Clear current value
+- Enable SysTick with processor clock
+
+### 5. Main Loop
+- Toggle LED on PA3 every 1000 ms using SysTick delay
+
+### 6. Interrupt Service Routine (EXTI2_IRQHandler)
+- Triggered when button on PA2 is pressed
+- Toggles LED on PA1
+- Clears pending interrupt flag
+
+---
+
+## Key Functions
+
+### SysTimer_Init()
+Initializes SysTick for 1ms tick based on 16 MHz clock.
+
+### delay_ms(uint32_t ms)
+Blocking delay using SysTick COUNTFLAG.
+
+### EXTI2_IRQHandler()
+Interrupt handler for button press. Toggles PA1 LED.
+
+---
+
+## Why This Is Important
+
+This code teaches:
+- **Direct register manipulation**
+- **Interrupt handling without HAL**
+- **SysTick timer usage**
+- **Real hardware control flow**
+
+This is the **foundation of professional embedded firmware development**.
+
+---
+
+## Next Learning Steps
+
+1. EXTI falling edge trigger
+2. Debouncing using timer
+3. Interrupt + timer combination
+4. NVIC priority configuration
+5. Multiple EXTI lines handling
+
+---
 
 ## Author
-Original example from repository: prakashJaybhaye/STM_32  
-File referenced: External_Interrupt_EXTI/LED_Toggle_Interrupt_Base.c
+Bare-metal STM32 learner 🚀  
+Practicing register-level firmware development
+
+---
+
+## Note
+Tested logic for **STM32F411 Black Pill** board. Adjust pins if using another variant.
