@@ -45,6 +45,7 @@ Lerned about how timmer works
 How many register are involved in TM2
 work flow of TM2
 Implementation of basic delay function using HSI and TM2
+Implementation of own Delay function using HSI and TM2 Interrupt handler
 
 *Project Implementation 
 1. 4 Bit Counter Design in 3 different manner
