@@ -45,12 +45,21 @@ HSI = 16 MHz
 
 Prescaler calculation:
 
-16,000,000 / 16,000 = 1,000 Hz  →  1 ms per tick
+TIM tick frequency = TIM_CLK / (PSC + 1)
+                  = 16,000,000 / (PSC + 1)
 
-So:
+We want 1 tick = 1 ms → 1000 Hz tick frequency
 
-TIM2_PSC = (16000000 / 16000) - 1;
+PSC = (16,000,000 / 1000) - 1
+PSC = 15,999   // TIM2_PSC = 15999
 
+Auto-reload:
+
+ARR = 1000 - 1 = 999   // TIM2_ARR = 999
+
+So total delay = (ARR + 1) × tick period
+               = 1000 × 1 ms
+               = 1 second
 ---
 
 ## Register Usage
