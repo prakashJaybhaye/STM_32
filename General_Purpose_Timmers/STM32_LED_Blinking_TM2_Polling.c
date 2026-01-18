@@ -1,35 +1,40 @@
-/*------------------------------------------------------------------------
-1	Start by locating the RCC base address from the STM32F411 memory map.
-2	From the RCC base, locate the RCC_AHB1ENR register offset (0x30) and compute its address.
-3	Enable the GPIOA peripheral clock by setting bit 0 in RCC_AHB1ENR.
-4	Locate the GPIOA base address from the memory map.
-5	From GPIOA base, locate the GPIOA_MODER register offset (0x00).
-6	Clear the two MODER bits corresponding to PA3 (3 × 2).
-7	Set those two bits to 01 to configure PA3 as a general purpose output.
-8	Locate the RCC_APB1ENR register offset (0x40) from the RCC base.
-9	Enable the TIM2 peripheral clock by setting bit 0 in RCC_APB1ENR.
-10	Locate the TIM2 base address from the memory map.
-11	From TIM2 base, locate the TIM2_PSC register offset (0x28).
-12	Calculate the prescaler value so that 16 MHz / 16000 = 1000 Hz, giving 1 ms per timer tick.
-13	Write the calculated value into TIM2_PSC.
-14	From TIM2 base, locate the TIM2_EGR register offset (0x14).
-15	Set bit 0 (UG – Update Generation) in TIM2_EGR to force the prescaler value to load immediately into the active counter logic.
-16	Enter the infinite loop.
-17	Read the current state of PA3 from GPIOA_ODR.
-18	If the PA3 bit is 1 (LED ON), write 1 to bit (3 + 16) in GPIOA_BSRR to reset PA3 and turn the LED OFF.
-19	If the PA3 bit is 0 (LED OFF), write 1 to bit 3 in GPIOA_BSRR to set PA3 and turn the LED ON.
-20	Disable TIM2 by clearing bit 0 (CEN) in TIM2_CR1.
-21	Load the required delay value (for example 1000) into TIM2_ARR.
-22	Reset the timer counter by writing 0 into TIM2_CNT.
-23	Set bit 0 (UG) in TIM2_EGR again to transfer ARR value into the active register and reset the internal counter logic.
-24	Enable TIM2 by setting bit 0 (CEN) in TIM2_CR1.
-25	Continuously poll bit 0 (UIF) in TIM2_SR until it becomes 1, indicating the timer has overflowed and the delay period has completed.
-26	Clear the UIF flag by writing 0 to bit 0 in TIM2_SR.
-27	Disable TIM2 again by clearing bit 0 (CEN) in TIM2_CR1.
-28	Repeat from step 17 to continuously toggle the LED with the specified delay.
---------------------------------------------------------------------------------------------------------------------------
-*/
-
+/*-------------------------------------------------------------------------------------------------
+1   Locate the RCC base address (0x40023800) from the STM32F411 memory map.
+2   From the RCC base, locate the RCC_AHB1ENR register at offset 0x30.
+3   Enable the GPIOA peripheral clock by setting bit 0 in RCC_AHB1ENR.
+4   Locate the GPIOA base address (0x40020000) from the memory map.
+5   From the GPIOA base, locate the GPIOA_MODER register at offset 0x00.
+6   Clear the two MODER bits corresponding to pin PA3 (bits 7:6).
+7   Set the MODER bits for PA3 to 01 to configure PA3 as a general-purpose output.
+8   From the RCC base, locate the RCC_APB1ENR register at offset 0x40.
+9   Enable the TIM2 peripheral clock by setting bit 0 in RCC_APB1ENR.
+10  Locate the TIM2 base address (0x40000000) from the memory map.
+11  From the TIM2 base, locate the TIM2_PSC (prescaler) register at offset 0x28.
+12  Calculate the prescaler value so that a 16 MHz timer clock is divided by 16000
+    resulting in a 1 kHz timer frequency (1 ms per timer tick).
+13  Write the calculated prescaler value into TIM2_PSC.
+14  From the TIM2 base, locate the TIM2_EGR register at offset 0x14.
+15  Set bit 0 (UG – Update Generation) in TIM2_EGR to immediately load the prescaler
+    value into the active timer logic.
+16  Enter the infinite loop.
+17  Read the current output state of PA3 from the GPIOA_ODR register.
+18  If PA3 is high (LED ON), write a 1 to bit (3 + 16) in GPIOA_BSRR to reset PA3
+    and turn the LED OFF.
+19  If PA3 is low (LED OFF), write a 1 to bit 3 in GPIOA_BSRR to set PA3
+    and turn the LED ON.
+20  Disable TIM2 by clearing bit 0 (CEN) in the TIM2_CR1 register.
+21  Clear the TIM2 update interrupt flag (UIF) by writing 0 to bit 0 of TIM2_SR.
+22  Load the desired delay value (e.g., 1000) into the TIM2_ARR register.
+23  Reset the timer counter by writing 0 into the TIM2_CNT register.
+24  Set bit 0 (UG) in TIM2_EGR to transfer the ARR value to the active register
+    and reset the internal counter logic.
+25  Enable TIM2 by setting bit 0 (CEN) in the TIM2_CR1 register.
+26  Continuously poll bit 0 (UIF) in the TIM2_SR register until it becomes 1,
+    indicating that the timer has overflowed and the delay period has elapsed.
+27  Clear the UIF flag by writing 0 to bit 0 of TIM2_SR.
+28  Disable TIM2 again by clearing bit 0 (CEN) in TIM2_CR1.
+29  Repeat from step 17 to continuously toggle the LED with the specified delay.
+-------------------------------------------------------------------------------------------------*/
 
 
 #include <stdint.h>
@@ -62,7 +67,7 @@
 void Init_Timer_TM_2(void)
 {
     RCC_APB1ENR |= (1 << 0);
-    TIM2_PSC = (HSI_CLK / 16000) - 1;
+    TIM2_PSC = (HSI_CLK/1000)-1;
     TIM2_EGR |= (1 << 0);
 }
 
@@ -71,11 +76,12 @@ void Init_Timer_TM_2(void)
 void delay(uint32_t ms)
 {
     TIM2_CR1 &= ~(1 << 0);
-    TIM2_ARR = ms;
+    TIM2_SR &= ~(1 << 0);
+    TIM2_ARR = ms-1;
     TIM2_CNT = 0;
     TIM2_EGR |= (1 << 0);
     TIM2_CR1 |= (1 << 0);
-
+    
     while ((TIM2_SR & 1) == 0);
 
     TIM2_SR &= ~(1 << 0);
