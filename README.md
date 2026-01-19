@@ -45,7 +45,9 @@ Lerned about how timmer works
 How many register are involved in TM2
 work flow of TM2
 Implementation of basic delay function using HSI and TM2
-Implementation of own Delay function using HSI and TM2 Interrupt handler
+Implementation of own Delay function using HSI and TM2 Interrupt handler.
+Learn How PWM is generated form Genral perpose timmer.
+Implementated code to control brightness of led with TM2 and delay by sytimmer.
 
 *Project Implementation 
 1. 4 Bit Counter Design in 3 different manner
