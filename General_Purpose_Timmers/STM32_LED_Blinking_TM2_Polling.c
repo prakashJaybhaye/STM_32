@@ -1,3 +1,4 @@
+
 /*-------------------------------------------------------------------------------------------------
 1   Locate the RCC base address (0x40023800) from the STM32F411 memory map.
 2   From the RCC base, locate the RCC_AHB1ENR register at offset 0x30.
@@ -75,17 +76,21 @@ void Init_Timer_TM_2(void)
 
 void delay(uint32_t ms)
 {
-    TIM2_CR1 &= ~(1 << 0);
-    TIM2_SR &= ~(1 << 0);
-    TIM2_ARR = ms-1;
-    TIM2_CNT = 0;
-    TIM2_EGR |= (1 << 0);
-    TIM2_CR1 |= (1 << 0);
-    
-    while ((TIM2_SR & 1) == 0);
+    TIM2_CR1 &= ~(1 << 0);  
+    TIM2_SR  &= ~(1 << 0);    
 
-    TIM2_SR &= ~(1 << 0);
-    TIM2_CR1 &= ~(1 << 0);
+    TIM2_ARR = ms - 1;
+    TIM2_CNT = 0;
+
+    TIM2_EGR |= (1 << 0);     
+    TIM2_SR  &= ~(1 << 0);    
+
+    TIM2_CR1 |= (1 << 0);     
+
+    while ((TIM2_SR & 1) == 0); 
+
+    TIM2_SR  &= ~(1 << 0);    
+    TIM2_CR1 &= ~(1 << 0);    
 }
 
 
@@ -109,7 +114,7 @@ int main()
             LED_ON;
         }
 
-        delay(1000);
+        delay(500);
     }
-    
+
 }
