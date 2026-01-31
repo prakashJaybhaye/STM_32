@@ -55,6 +55,14 @@ Implementated code to control brightness of led with TM2 and delay by sytimmer.
    b) Push Button base on every button press counter will increase form 0-15.
    c) EXTI and NVIC base on every button press interrupt will fire and counter will increase form 0-15
 
+2. Event-driven Moore finite state machine implemented in a super-loop architecture
+   LED and switch base state machine on every buttom press led will
+   LED Off
+   LED ON
+   LED TOGGLE 
+   LED PWM
+   EXTI used for button state
+
 🎯 Goal & Roadmap
 Short-Term Goals
 Master true bare-metal programming on STM32 microcontrollers
