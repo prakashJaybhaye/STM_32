@@ -88,6 +88,7 @@ Final BRR value:
 _Add your terminal / oscilloscope image here_
 
 ```
-<img width="1365" height="350" alt="image" src="https://github.com/user-attachments/assets/91874bf5-aa16-4e6a-a5d3-93b00c39ecdb" />
+<img width="1365" height="350" alt="image" src="https://github.com/user-attachments/assets/ebce1a81-2f04-428d-954b-ebd843bead80" />
+
 
 ```
