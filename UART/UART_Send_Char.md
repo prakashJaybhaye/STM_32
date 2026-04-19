@@ -84,11 +84,4 @@ Final BRR value:
 
 ---
 
-## 8. Output Screenshot
-_Add your terminal / oscilloscope image here_
 
-```
-<img width="1365" height="350" alt="image" src="https://github.com/user-attachments/assets/ebce1a81-2f04-428d-954b-ebd843bead80" />
-
-
-```
