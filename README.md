@@ -49,6 +49,14 @@ Implementation of own Delay function using HSI and TM2 Interrupt handler.
 Learn How PWM is generated form Genral perpose timmer.
 Implementated code to control brightness of led with TM2 and delay by sytimmer.
 
+7. UART (Universal Asyncronus Reciver Tarnsmmiter ) 
+Learned the fundamentals of UART communication protocol
+Understood how many registers are involved in USART2 configuration
+Studied baud rate calculation using HSI (High-Speed Internal clock)
+Implemented UART transmission functions from scratch:
+UART_SendChar() for sending a single character
+UART_SendString() for transmitting a complete string
+
 *Project Implementation 
 1. 4 Bit Counter Design in 3 different manner
    a) For Loop and Delay base for evert 2-3 second counter will increase form 0-15(SysTimer is Useed for own Delay Function)
