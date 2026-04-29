@@ -5,9 +5,7 @@
 
 /**
  * @file    systick.h
- * @author  Prakash Jaybhaye
- * @brief   SysTick driver (register + API definition)
- * @note    Bare-metal STM32 Cortex-M4 SysTick implementation
+ * @brief   SysTick driver (blocking + non-blocking support)
  */
 
 /* ============================================================
@@ -40,17 +38,29 @@
  */
 
 /**
- * @brief  Initializes SysTick timer for periodic tick generation
- * @param  tick_hz: Tick frequency (e.g., 1000 = 1ms tick)
- * @retval None
+ * @brief  Initializes SysTick timer
+ * @param  tick_hz: Desired tick frequency (e.g., 1000 = 1ms tick)
  */
 void SysTick_Timer_Init(uint32_t tick_hz);
 
 /**
- * @brief  Blocking delay using SysTick COUNTFLAG
+ * @brief  Returns system uptime in milliseconds
+ * @note   Depends on SysTick interrupt
+ */
+uint32_t millis(void);
+
+/**
+ * @brief  Blocking delay using millis()
  * @param  ms: Delay in milliseconds
- * @retval None
  */
 void SysTick_Timer_DelayMs(uint32_t ms);
+
+/**
+ * @brief  Non-blocking delay checker
+ * @param  last: Pointer to last execution time
+ * @param  delay: Required delay in ms
+ * @retval 1 if delay elapsed, else 0
+ */
+uint8_t SysTick_is_time_elapsed(uint32_t *last, uint32_t delay);
 
 #endif /* SYSTICK_H */
