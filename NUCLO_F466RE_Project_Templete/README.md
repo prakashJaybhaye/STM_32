@@ -111,20 +111,10 @@ RAM (0x20000000)
 ### 1. ARM GCC Toolchain
 - arm-none-eabi-gcc
 - arm-none-eabi-gdb  
-
-Download:  
-https://developer.arm.com/downloads/-/gnu-rm
-
 ---
 
 ### 2. OpenOCD
 
-Linux:
-```
-sudo apt install openocd
-```
-
-Windows: Use prebuilt binaries
 
 ---
 
@@ -219,14 +209,6 @@ Drivers/
 - Bare-metal debugging
 
 ---
-
-## 🔄 Recommended Next Steps
-
-- GPIO driver (full config)
-- SPI / I2C drivers
-- Interrupt handling
-- Board Support Package (BSP)
-
 ---
 
 ## ⚠️ Important Notes
