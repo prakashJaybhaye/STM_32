@@ -8,7 +8,7 @@ int main(void)
 
     GPIO_Init(LED);
 
-    SysTick_Init(1000);
+    SysTick_Timer_Init(1000);
 
     USART2_Init();
 
@@ -20,6 +20,6 @@ int main(void)
 
         USART2_SendString("LED Toggled\r\n");
 
-        SysTick_DelayMs(500);
+        SysTick_Timer_DelayMs(500);
     }
 }
