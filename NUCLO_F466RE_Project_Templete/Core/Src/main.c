@@ -1,14 +1,25 @@
-#include "usart2.h"
+#include "stm32f446xx_gpio.h"
 #include "systick.h"
+#include "usart2.h"
 
 int main(void)
 {
-    USART2_Init();          // UART first
-    SysTick_Timer_Init(1000); // 1ms tick
+    GPIO_t LED = {GPIOA_PORT, 5};
+
+    GPIO_Init(LED);
+
+    SysTick_Init();
+
+    USART2_Init();
+
+    USART2_SendString("System Initialized\r\n");
 
     while (1)
     {
-        USART2_SendString("This Code is flased thrugh vs code\r\n");
-        SysTick_Timer_DelayMs(500); // 1000 ms delay
+        GPIO_Toggle(LED);
+
+        USART2_SendString("LED Toggled\r\n");
+
+        SysTick_DelayMs(500);
     }
 }

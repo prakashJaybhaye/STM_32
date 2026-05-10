@@ -52,17 +52,59 @@ void USART2_SendChar(char c)
 }
 
 /* Send string */
-void USART2_SendString(char *str)
+void USART2_SendString(const char *str)
 {
-    while (*str)
+    while (*str != '\0')
     {
         USART2_SendChar(*str++);
     }
 }
 
 /* Receive one character */
-char USART2_ReceiveChar(void)
+uint8_t USART2_ReceiveChar(unsigned char *c)
 {
-    while (!(USART2_SR & (1 << 5))); /* wait RX data */
-    return (char)USART2_DR;
+    if (USART2_SR & (1 << 5)) /* check RXNE */
+    {
+        *c = USART2_DR & 0xFF; /* read received char */
+        return 1; /* success */
+    }
+    return 0; /* no data */
+}
+
+uint8_t USART2_ReceiveString(char *buffer, uint32_t max_length)
+{
+    static uint32_t i = 0;
+    unsigned char c;
+
+    if (USART2_ReceiveChar(&c))
+    {
+        /* Echo character */
+        USART2_SendChar(c);
+
+        /* Handle Enter key */
+        if (c == '\r' || c == '\n')
+        {
+            if (i > 0)
+            {
+                buffer[i] = '\0';
+                i = 0;
+                return 1;
+            }
+
+            return 0;
+        }
+
+        /* Store character */
+        if (i < (max_length - 1))
+        {
+            buffer[i++] = c;
+        }
+        else
+        {
+            /* Reset on overflow */
+            i = 0;
+        }
+    }
+
+    return 0;
 }
