@@ -60,4 +60,4 @@ flash: $(TARGET).elf
 # CLEAN
 ######################################
 clean:
-	del *.elf *.bin
+	rm -f *.elf *.bin
