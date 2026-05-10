@@ -2,29 +2,7 @@
 #define GPIO_H
 
 #include <stdint.h>
-
-/* RCC */
-
-#define RCC_BASE        0x40023800UL
-#define RCC_AHB1ENR     (*(volatile uint32_t *)(RCC_BASE + 0x30U))
-
-/* GPIO */
-
-#define GPIOA_BASE      0x40020000UL
-#define GPIOB_BASE      0x40020400UL
-#define GPIOC_BASE      0x40020800UL
-
-#define GPIOA_MODER     (*(volatile uint32_t *)(GPIOA_BASE + 0x00U))
-#define GPIOA_ODR       (*(volatile uint32_t *)(GPIOA_BASE + 0x14U))
-#define GPIOA_BSRR      (*(volatile uint32_t *)(GPIOA_BASE + 0x18U))
-
-#define GPIOB_MODER     (*(volatile uint32_t *)(GPIOB_BASE + 0x00U))
-#define GPIOB_ODR       (*(volatile uint32_t *)(GPIOB_BASE + 0x14U))
-#define GPIOB_BSRR      (*(volatile uint32_t *)(GPIOB_BASE + 0x18U))
-
-#define GPIOC_MODER (*(volatile uint32_t *)(GPIOC_BASE + 0x00U))
-#define GPIOC_ODR   (*(volatile uint32_t *)(GPIOC_BASE + 0x14U))
-#define GPIOC_BSRR  (*(volatile uint32_t *)(GPIOC_BASE + 0x18U))
+#include "stm32f446xx.h"
 
 typedef enum
 {
