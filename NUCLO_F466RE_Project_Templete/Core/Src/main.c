@@ -8,7 +8,7 @@ int main(void)
 
     GPIO_Init(LED);
 
-    SysTick_Init();
+    SysTick_Init(1000);
 
     USART2_Init();
 
