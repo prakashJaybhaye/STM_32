@@ -50,12 +50,55 @@ Learn How PWM is generated form Genral perpose timmer.
 Implementated code to control brightness of led with TM2 and delay by sytimmer.
 
 7. UART (Universal Asyncronus Reciver Tarnsmmiter ) 
-Learned the fundamentals of UART communication protocol
-Understood how many registers are involved in USART2 configuration
-Studied baud rate calculation using HSI (High-Speed Internal clock)
-Implemented UART transmission functions from scratch:
-UART_SendChar() for sending a single character
-UART_SendString() for transmitting a complete string
+Learned the fundamentals of the UART communication protocol and serial data transmission.
+Understood the USART2 peripheral architecture and the registers required for UART configuration.
+Studied baud rate calculation using the HSI (High-Speed Internal) clock source.
+Implemented UART driver functions from scratch, including:
+UART_SendChar() for transmitting a single character
+UART_SendString() for sending complete strings
+UART_ReceiveChar() using a non-blocking reception method
+UART_ReceiveString() for receiving strings over UART
+Developed practical experience with embedded serial communication and real-time data exchange between the STM32 microcontroller and a serial terminal.
+
+
+*Driver Development
+ STM32 Hardware Abstraction Layer
+ Implemented stm32f446xx.h, containing:
+  - Peripheral base addresses
+  - Register definitions
+  - Register offset mappings
+  - Memory-mapped hardware access macros for the STM32F446 microcontroller
+
+ GPIO Driver Implementation
+  - GPIO pin initialization
+  - Digital output control
+  - Pin state toggling
+  - Direct register-level manipulation
+    void GPIO_Init(GPIO_t gpio);
+    void GPIO_Toggle(GPIO_t gpio);
+    void GPIO_Set(GPIO_t gpio);
+    void GPIO_Reset(GPIO_t gpio);
+
+ SysTick Timer Driver
+  - Millisecond delay generation
+  - Periodic task scheduling
+  - Non-blocking software timing mechanism
+  - Real-time event timing using the SysTick peripheral
+    void SysTick_Timer_DelayMs(uint32_t ms);
+    uint8_t SysTick_is_time_elapsed(uint32_t *last, uint32_t delay);
+
+ USART Driver Implementation
+  - USART2 peripheral initialization
+  - Character and string transmission
+  - Non-blocking UART reception
+  - String-based serial communication
+  - Embedded CLI communication support
+    void USART2_Init(void);
+    void USART2_SendChar(char c);
+    void USART2_SendString(const char *str);
+    uint8_t USART2_ReceiveChar(unsigned char *c);
+    uint8_t USART2_ReceiveString(char *buffer, uint32_t max_length);
+
 
 *Project Implementation 
 1. 4 Bit Counter Design in 3 different manner
@@ -70,6 +113,11 @@ UART_SendString() for transmitting a complete string
    LED TOGGLE 
    LED PWM
    EXTI used for button state
+
+3. UART CLI Counter
+   This project implements a UART Command Line Interface (CLI) controlled 4-bit binary counter using the STM32F446 microcontroller.
+   The system displays a continuously incrementing 4-bit binary count on four LEDs connected to GPIO pins PB12–PB15.
+   User commands are sent through UART communication to control the counter behavior in real time.
 
 🎯 Goal & Roadmap
 Short-Term Goals
