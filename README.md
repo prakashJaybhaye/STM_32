@@ -4,7 +4,7 @@ Learned how to read and understand STM32 datasheets and reference manuals
 Understood memory mapping, peripheral base addresses, and offset addressing
 Learned how to access peripheral registers using base address + offset
 
-3. GPIO & RCC Register-Level Programming
+2. GPIO & RCC Register-Level Programming
 Studied and implemented GPIO configuration using register-level programming
 Learned usage and purpose of the following registers:
 RCC (AHB1ENR) – Peripheral clock enabling
@@ -28,7 +28,7 @@ LED toggling on button press
 LED remains ON while the button is continuously pressed
 Pure register-level implementation
 
-6. SysTick Timer & Delay Implementation
+5. SysTick Timer & Delay Implementation
 Learned Cortex-M4 SysTick timer registers
 Designed and implemented an accurate delay function
 Used SysTick for precise LED blinking timing
@@ -40,7 +40,7 @@ Configured EXTI at register level
 Implemented LED toggling on external interrupt
 Fully bare-metal interrupt handling
 
-6. Genral perpose timmer
+7. Genral perpose timmer
 Lerned about how timmer works
 How many register are involved in TM2
 work flow of TM2
@@ -49,7 +49,7 @@ Implementation of own Delay function using HSI and TM2 Interrupt handler.
 Learn How PWM is generated form Genral perpose timmer.
 Implementated code to control brightness of led with TM2 and delay by sytimmer.
 
-7. UART (Universal Asyncronus Reciver Tarnsmmiter ) 
+8. UART (Universal Asyncronus Reciver Tarnsmmiter ) 
 Learned the fundamentals of the UART communication protocol and serial data transmission.
 Understood the USART2 peripheral architecture and the registers required for UART configuration.
 Studied baud rate calculation using the HSI (High-Speed Internal) clock source.
@@ -60,7 +60,7 @@ UART_ReceiveChar() using a non-blocking reception method
 UART_ReceiveString() for receiving strings over UART
 Developed practical experience with embedded serial communication and real-time data exchange between the STM32 microcontroller and a serial terminal.
 
-8. SPI (Serial Peripheral Interface)
+9. SPI (Serial Peripheral Interface)
 Learned the fundamentals of SPI communication and synchronous serial data transfer.
 Understood SPI1 peripheral architecture, master-slave communication, and key SPI registers (CR1, SR, DR).
 Implemented SPI driver functions from scratch using register-level programming, including SPI initialization and byte transmission.
