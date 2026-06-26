@@ -60,7 +60,7 @@ UART_ReceiveChar() using a non-blocking reception method
 UART_ReceiveString() for receiving strings over UART
 Developed practical experience with embedded serial communication and real-time data exchange between the STM32 microcontroller and a serial terminal.
 
-8.SPI (Serial Peripheral Interface)
+8. SPI (Serial Peripheral Interface)
 Learned the fundamentals of SPI communication and synchronous serial data transfer.
 Understood SPI1 peripheral architecture, master-slave communication, and key SPI registers (CR1, SR, DR).
 Implemented SPI driver functions from scratch using register-level programming, including SPI initialization and byte transmission.
