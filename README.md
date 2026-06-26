@@ -60,6 +60,11 @@ UART_ReceiveChar() using a non-blocking reception method
 UART_ReceiveString() for receiving strings over UART
 Developed practical experience with embedded serial communication and real-time data exchange between the STM32 microcontroller and a serial terminal.
 
+8.SPI (Serial Peripheral Interface)
+Learned the fundamentals of SPI communication and synchronous serial data transfer.
+Understood SPI1 peripheral architecture, master-slave communication, and key SPI registers (CR1, SR, DR).
+Implemented SPI driver functions from scratch using register-level programming, including SPI initialization and byte transmission.
+Configured SPI1 in Master Mode with software slave management and verified communication using a Logic Analyzer.bDeveloped practical experience with GPIO Alternate Function configuration, SPI status flags (TXE, BSY), and bare-metal peripheral programming on the STM32F446RE.
 
 *Driver Development
  STM32 Hardware Abstraction Layer
@@ -69,7 +74,7 @@ Developed practical experience with embedded serial communication and real-time 
   - Register offset mappings
   - Memory-mapped hardware access macros for the STM32F446 microcontroller
 
- GPIO Driver Implementation
+ GPIO Driver Implementation V1
   - GPIO pin initialization
   - Digital output control
   - Pin state toggling
@@ -79,6 +84,21 @@ Developed practical experience with embedded serial communication and real-time 
     void GPIO_Set(GPIO_t gpio);
     void GPIO_Reset(GPIO_t gpio);
 
+ GPIO Driver Implementation V2
+  - GPIO peripheral clock control
+  - Generic GPIO pin initialization using handler structure
+  - Digital input reading and output control
+  - GPIO pin state toggling
+  - GPIO peripheral de-initialization
+  - Reusable multi-port driver architecture
+  - Register-level hardware 
+    void GPIO_Init(GPIO_Handler_t *pGPIOHandler);
+    void GPIO_PeripheralClockControl(GPIO_RegDef_t *pGPIOx, u8 ENABLE);
+    void GPIO_DeInit(GPIO_RegDef_t *pGPIOx);
+    void GPIO_WritePin(GPIO_RegDef_t *pGPIOx, uint8_t PinNumber, GPIO_PinState_t Value);
+    GPIO_PinState_t GPIO_ReadPin(GPIO_RegDef_t *pGPIOx, uint8_t PinNumber);
+    void GPIO_TogglePin(GPIO_RegDef_t *pGPIOx, uint8_t PinNumber);
+ 
  SysTick Timer Driver
   - Millisecond delay generation
   - Periodic task scheduling
